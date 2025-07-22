@@ -85,4 +85,3 @@ const FoodItem = ({ id, name, price, description, image, category }) => {
 };
 
 export default FoodItem;
-
