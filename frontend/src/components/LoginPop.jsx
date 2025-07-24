@@ -1,16 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { assets } from '../new assests/frontend_assets/assets';
+import axios from 'axios';
+import { StoreContext } from '../Context/StoreContext';
 
-const LoginPop = ({ ShowLogin, setShowLogin }) => {
+const LoginPop = ({ ShowLogin, setShowLogin, setIsLoggedIn }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
-    firstName: '',
-    lastName: '',
+    name: '',
+    phone: '',
   });
   const [errors, setErrors] = useState({});
+  const { token, setToken } = useContext(StoreContext);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -18,12 +21,49 @@ const LoginPop = ({ ShowLogin, setShowLogin }) => {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
         [name]: ''
       }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (validateForm()) {
+      try {
+        const url = isLogin
+          ? "http://localhost:5000/api/user/login"
+          : "http://localhost:5000/api/user/register";
+
+        const response = await axios.post(url, formData);
+        console.log("✅ Response from backend:", response.data);
+
+        if (response.data.success) {
+          const token = response.data.token;
+          console.log("✅ Token received:", token);
+
+          setToken(token);
+          localStorage.setItem('token', token);
+          setIsLoggedIn(true); // <--- update parent state
+          setShowLogin(false);
+          setFormData({
+            email: '',
+            password: '',
+            confirmPassword: '',
+            name: '',
+            phone: '',
+          });
+          setErrors({});
+          alert(isLogin ? 'Login successful!' : 'Registration successful!');
+        } else {
+          alert((isLogin ? 'Login' : 'Registration') + ' failed: ' + response.data.error);
+        }
+      } catch (error) {
+        console.error("❌ Error during request:", error.response?.data || error.message);
+        alert('An error occurred: ' + (error.response?.data?.error || error.message));
+      }
     }
   };
 
@@ -49,29 +89,20 @@ const LoginPop = ({ ShowLogin, setShowLogin }) => {
         newErrors.confirmPassword = 'Passwords do not match';
       }
 
-      if (!formData.firstName) {
-        newErrors.firstName = 'First name is required';
+      if (!formData.name) {
+        newErrors.name = 'Name is required';
       }
 
-      if (!formData.lastName) {
-        newErrors.lastName = 'Last name is required';
+      if (!formData.phone) {
+        newErrors.phone = 'Phone number is required';
+      } else if (!/^\d{10}$/.test(formData.phone)) {
+        newErrors.phone = 'Enter a valid 10-digit phone number';
       }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (validateForm()) {
-      // Handle form submission here
-      console.log('Form submitted:', formData);
-      // You can add your authentication logic here
-    }
-  };
-
-
 
   const closeModal = () => {
     setShowLogin(false);
@@ -80,8 +111,8 @@ const LoginPop = ({ ShowLogin, setShowLogin }) => {
       email: '',
       password: '',
       confirmPassword: '',
-      firstName: '',
-      lastName: '',
+      name: '',
+      phone: '',
     });
     setErrors({});
   };
@@ -89,15 +120,14 @@ const LoginPop = ({ ShowLogin, setShowLogin }) => {
   if (!ShowLogin) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4 pt-20"
       onClick={closeModal}
     >
-      <div 
+      <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 text-white relative">
           <button
             onClick={closeModal}
@@ -117,99 +147,80 @@ const LoginPop = ({ ShowLogin, setShowLogin }) => {
           </p>
         </div>
 
-        {/* Form */}
         <div className="p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
-              <div className="grid grid-cols-2 gap-4">
+              <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    First Name
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                   <input
                     type="text"
-                    name="firstName"
-                    value={formData.firstName}
+                    name="name"
+                    value={formData.name}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                      errors.firstName ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-3 py-2 border rounded-lg ${
+                      errors.name ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="John"
+                    placeholder="Your Name"
                   />
-                  {errors.firstName && (
-                    <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>
-                  )}
+                  {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Last Name
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                   <input
                     type="text"
-                    name="lastName"
-                    value={formData.lastName}
+                    name="phone"
+                    value={formData.phone}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                      errors.lastName ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-3 py-2 border rounded-lg ${
+                      errors.phone ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="Doe"
+                    placeholder="10-digit phone number"
                   />
-                  {errors.lastName && (
-                    <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>
-                  )}
+                  {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                 </div>
-              </div>
+              </>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                className={`w-full px-3 py-2 border rounded-lg ${
                   errors.email ? 'border-red-500' : 'border-gray-300'
                 }`}
                 placeholder="john@example.com"
               />
-              {errors.email && (
-                <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-              )}
+              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
               <input
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                className={`w-full px-3 py-2 border rounded-lg ${
                   errors.password ? 'border-red-500' : 'border-gray-300'
                 }`}
                 placeholder="••••••••"
               />
-              {errors.password && (
-                <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-              )}
+              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
             </div>
 
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Confirm Password
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
                 <input
                   type="password"
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                  className={`w-full px-3 py-2 border rounded-lg ${
                     errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="••••••••"
@@ -240,7 +251,6 @@ const LoginPop = ({ ShowLogin, setShowLogin }) => {
             </button>
           </form>
 
-          {/* Toggle between Login and Register */}
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               {isLogin ? "Don't have an account? " : "Already have an account? "}
@@ -251,8 +261,8 @@ const LoginPop = ({ ShowLogin, setShowLogin }) => {
                     email: '',
                     password: '',
                     confirmPassword: '',
-                    firstName: '',
-                    lastName: '',
+                    name: '',
+                    phone: '',
                   });
                   setErrors({});
                 }}

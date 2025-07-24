@@ -1,11 +1,46 @@
-import React, { createContext, useState } from 'react';
-import { food_list } from '../new assests/frontend_assets/assets';
 
+import React, { createContext, useState } from 'react';
 export const StoreContext = createContext(null);
 
 const StoreProvider = (props) => {
     const [cartItems, setCartItems] = useState({});
     const [orders, setOrders] = useState([]);
+     const [token,setToken] = useState("") // Token for authentication, if needed
+     const [food_list, setFoodList] = useState([]); // Initial food list
+     const url="http://localhost:5000";
+    // Function to fetch food list from backend
+    const fetchFoodList = async () => {
+        try {
+            const response = await fetch('http://localhost:5000/api/food/all');
+            const data = await response.json();
+            if (data.success) {
+                setFoodList(data.data);
+            } else {
+                console.error("Failed to fetch food list:", data.message);
+            }
+        } catch (error) {
+            console.error("Error fetching food list:", error);
+        }
+    };
+
+    // Call fetchFoodList on component mount
+    React.useEffect(() => {
+        fetchFoodList();
+       if (localStorage.getItem("token")) {
+            setToken(localStorage.getItem("token"));
+        }
+        async function loadCartItems() {
+            const savedCart = localStorage.getItem("cartItems");
+            if (savedCart) {
+                setCartItems(JSON.parse(savedCart));
+            }
+        }
+        loadCartItems();
+        return () => {
+            localStorage.setItem("cartItems", JSON.stringify(cartItems));
+        };
+    }, []);
+
 
     const addToCart = (itemId) => {
         setCartItems(prev => ({
@@ -42,6 +77,7 @@ const StoreProvider = (props) => {
         setOrders(prev => [order, ...prev]);
         setCartItems({}); // Clear cart after order
     };
+     
 
     const contextValue = {
         food_list,
@@ -52,7 +88,13 @@ const StoreProvider = (props) => {
         getTotalCartItems,
         getTotalPrice,
         orders,
-        addOrder
+        addOrder,
+        token,
+        setToken,
+        url,
+        fetchFoodList,
+        setFoodList,
+        food_list,
     }
 
     return (
