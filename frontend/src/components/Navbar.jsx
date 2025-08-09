@@ -11,10 +11,12 @@ const menuItems = [
   { key: "contact", label: "Contact Us", path: "/contact" },
 ];
 
-const Navbar = ({ setShowLogin, isLoggedIn, setIsLoggedIn }) => {
+
+const Navbar = ({ setShowLogin, isLoggedIn, setIsLoggedIn, setShowAdminLogin, isAdminLoggedIn, onAdminLogout }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const { getTotalCartItems } = useContext(StoreContext);
   const cartCount = getTotalCartItems();
+  const navigate = useNavigate();
 
   const [userDropdown, setUserDropdown] = useState(false);
 
@@ -22,7 +24,7 @@ const Navbar = ({ setShowLogin, isLoggedIn, setIsLoggedIn }) => {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
     setUserDropdown(false);
-    nevigate("/"); 
+    navigate("/"); 
   };
 
   return (
@@ -31,7 +33,7 @@ const Navbar = ({ setShowLogin, isLoggedIn, setIsLoggedIn }) => {
         {/* Logo */}
         <NavLink to="/" className="flex-shrink-0 flex items-center">
           <span className="text-2xl md:text-3xl font-extrabold text-orange-600 select-none">
-            Tomato.
+            Punjabi Dhaba
           </span>
         </NavLink>
 
@@ -79,12 +81,29 @@ const Navbar = ({ setShowLogin, isLoggedIn, setIsLoggedIn }) => {
             </NavLink>
           </div>
 
-          <NavLink
-            to="/admin"
-            className="hidden md:inline-block border border-orange-600 text-[#49557e] font-semibold rounded-full px-6 py-2 transition hover:bg-orange-50 text-sm md:text-base"
-          >
-            Admin
-          </NavLink>
+          {!isAdminLoggedIn ? (
+            <button
+              onClick={() => setShowAdminLogin(true)}
+              className="hidden md:inline-block border border-red-600 text-red-600 font-semibold rounded-full px-6 py-2 transition hover:bg-red-50 text-sm md:text-base"
+            >
+              Admin
+            </button>
+          ) : (
+            <div className="hidden md:flex items-center gap-2">
+              <button
+                onClick={() => window.open('http://localhost:5174', '_blank')}
+                className="border border-green-600 text-green-600 font-semibold rounded-full px-6 py-2 transition hover:bg-green-50 text-sm md:text-base"
+              >
+                Admin Panel
+              </button>
+              <button
+                onClick={onAdminLogout}
+                className="border border-red-600 text-red-600 font-semibold rounded-full px-4 py-2 transition hover:bg-red-50 text-sm md:text-base"
+              >
+                Logout
+              </button>
+            </div>
+          )}
           <NavLink
             to="/orders"
             className="hidden md:inline-block border border-orange-600 text-[#49557e] font-semibold rounded-full px-6 py-2 transition hover:bg-orange-50 text-sm md:text-base"
@@ -190,13 +209,38 @@ const Navbar = ({ setShowLogin, isLoggedIn, setIsLoggedIn }) => {
             ))}
           </ul>
           <div className="flex flex-col gap-3 pt-4 border-t border-gray-100">
-            <NavLink
-              to="/admin"
-              onClick={() => setMenuOpen(false)}
-              className="border border-orange-600 text-[#49557e] font-semibold rounded-full px-6 py-2 transition hover:bg-orange-50 text-base text-center"
-            >
-              Admin
-            </NavLink>
+            {!isAdminLoggedIn ? (
+              <button
+                onClick={() => {
+                  setShowAdminLogin(true);
+                  setMenuOpen(false);
+                }}
+                className="border border-red-600 text-red-600 font-semibold rounded-full px-6 py-2 transition hover:bg-red-50 text-base text-center"
+              >
+                Admin
+              </button>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => {
+                    window.open('http://localhost:5174', '_blank');
+                    setMenuOpen(false);
+                  }}
+                  className="border border-green-600 text-green-600 font-semibold rounded-full px-6 py-2 transition hover:bg-green-50 text-base text-center"
+                >
+                  Admin Panel
+                </button>
+                <button
+                  onClick={() => {
+                    onAdminLogout();
+                    setMenuOpen(false);
+                  }}
+                  className="border border-red-600 text-red-600 font-semibold rounded-full px-6 py-2 transition hover:bg-red-50 text-base text-center"
+                >
+                  Admin Logout
+                </button>
+              </div>
+            )}
             <NavLink
               to="/orders"
               onClick={() => setMenuOpen(false)}

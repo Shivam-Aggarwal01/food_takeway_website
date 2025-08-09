@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerUser, loginUser } from '../controllers/User.controller.js';
+import { registerUser, loginUser, refreshToken} from '../controllers/User.controller.js';
 
 const userRouter = express.Router();
 
@@ -7,5 +7,7 @@ const userRouter = express.Router();
 userRouter.post('/register', registerUser);
 // User login route
 userRouter.post('/login', loginUser);
+// Token refresh route
+userRouter.post('/refresh-token', refreshToken);
 
 export default userRouter;

@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-
-
 const Remove = () => {
   const [list, setList] = useState([]);
 
@@ -50,7 +48,7 @@ const Remove = () => {
                 className="h-40 w-full object-cover rounded-t"
               />
             ) : (
-              <div className="w-full h-48 bg-orange-100 flex items-center justify-center text-orange-400">
+              <div className="w-full h-40 bg-orange-100 flex items-center justify-center text-orange-400">
                 No Image
               </div>
             )}
@@ -60,12 +58,25 @@ const Remove = () => {
               <h2 className="text-xl font-bold text-gray-800">{item.name}</h2>
               <p className="text-orange-600 font-semibold text-lg mt-1">₹{item.price}</p>
               {item.category && <p className="text-sm text-gray-600 mt-1">Category: {item.category}</p>}
-              {item.Option && <p className="text-sm text-gray-600 mt-1">Option: {item.Option}</p>}
+              
+              {item.extraOptions?.length > 0 && (
+                <div className="text-sm text-gray-600 mt-1">
+                  Options:
+                  <ul className="list-disc list-inside ml-2">
+                    {item.extraOptions.map((opt, idx) => (
+                      <li key={idx}>
+                        {opt.name} (+₹{opt.price || 0})
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {item.description && (
                 <p className="text-gray-500 text-sm mt-2 line-clamp-3">{item.description}</p>
               )}
 
-              {/* Actions */}
+              {/* Delete Button */}
               <div className="mt-auto pt-4">
                 <button
                   onClick={() => handleDelete(item._id)}

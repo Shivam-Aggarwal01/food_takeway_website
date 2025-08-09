@@ -1,155 +1,114 @@
-import React, { useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { StoreContext } from '../Context/StoreContext';
-import { assets } from '../new assests/frontend_assets/assets';
 
 const FoodDetailPopup = ({ food, isOpen, onClose }) => {
-  const { cartItems, addToCart, removeFromCart } = useContext(StoreContext);
-  const count = cartItems[food?.id] || 0;
+  const { addToCart } = useContext(StoreContext);
+  const { _id, name, description, price, image, extraOptions = [] } = food;
+  const [quantity, setQuantity] = useState(1);
+  const [selectedOptions, setSelectedOptions] = useState([]); // store option IDs
 
-  if (!isOpen || !food) return null;
+  const handleOptionChange = (option) => {
+    const id = option._id || option.name;
+    if (selectedOptions.includes(id)) {
+      setSelectedOptions(selectedOptions.filter(o => o !== id));
+    } else {
+      setSelectedOptions([...selectedOptions, id]);
+    }
+  };
+
+  const getTotalPrice = () => {
+    const basePrice = Number(price) || 0;
+    const extrasPrice = extraOptions
+      .filter(option => selectedOptions.includes(option._id || option.name))
+      .reduce((total, option) => total + (Number(option.price) || 0), 0);
+    return ((basePrice + extrasPrice) * quantity).toFixed(2);
+  };
+
+  const handleAddToCart = () => {
+    const cartItem = {
+      id: _id,
+      name,
+      price: Number(price),
+      image,
+      quantity,
+      selectedOptions: extraOptions
+        .filter(option => selectedOptions.includes(option._id || option.name))
+        .map(option => option.name),
+    };
+    console.log("Adding to cart from popup:", cartItem); // Debug log
+    addToCart(cartItem);
+    onClose();
+  };
+
+  if (!isOpen) return null;
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4 pt-20"
-      onClick={onClose}
-    >
-      <div 
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header with close button */}
-        <div className="relative">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-2xl p-4 sm:p-8 shadow-2xl w-full max-w-md relative border border-orange-200 flex flex-col">
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-gray-400 hover:text-orange-500 text-2xl font-bold bg-white rounded-full shadow p-1"
+        >
+          ×
+        </button>
+
+        <img
+          src={`http://localhost:5000/images/${image}`}
+          alt={name}
+          className="w-full h-40 sm:h-56 object-cover rounded-xl mb-4 border border-orange-100"
+        />
+
+        <h2 className="text-xl sm:text-2xl font-bold mb-2 text-gray-800">{name}</h2>
+        <p className="text-gray-600 mb-3 text-base">{description}</p>
+        <p className="text-orange-500 font-bold text-lg sm:text-xl mb-4 px-4 py-2 rounded-full inline-block bg-orange-50">
+          ${getTotalPrice()}
+        </p>
+
+        {/* Extra Options */}
+        {extraOptions.length > 0 && (
+          <div className="mb-4">
+            <h3 className="font-semibold mb-2 text-gray-700">Choose Extra Options:</h3>
+            {extraOptions.map((option) => {
+              const id = option._id || option.name;
+              return (
+                <label key={id} className="flex items-center mb-1 gap-2 text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={selectedOptions.includes(id)}
+                    onChange={() => handleOptionChange(option)}
+                    className="accent-orange-500 w-4 h-4"
+                  />
+                  <span className="text-sm">{option.name} <span className="text-orange-500 font-semibold">( +${option.price})</span></span>
+                </label>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Quantity */}
+        <div className="flex items-center gap-4 mb-6 mt-2">
+          <span className="font-semibold text-gray-700">Quantity:</span>
           <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors z-10 p-2 rounded-full hover:bg-black/20"
-            type="button"
-            aria-label="Close modal"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          
-          {/* Food Image */}
-          <div className="relative h-64 md:h-80">
-            <img
-              src={food.image}
-              alt={food.name}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-            
-            {/* Food name overlay */}
-            <div className="absolute bottom-4 left-4 right-4">
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                {food.name}
-              </h2>
-              <p className="text-orange-400 text-lg md:text-xl font-semibold">
-                ${food.price}
-              </p>
-            </div>
-          </div>
+            onClick={() => setQuantity(quantity > 1 ? quantity - 1 : 1)}
+            className="bg-orange-100 text-orange-500 px-3 py-1 rounded-full text-lg font-bold hover:bg-orange-200"
+          >-</button>
+          <span className="text-lg font-bold text-gray-800">{quantity}</span>
+          <button
+            onClick={() => setQuantity(quantity + 1)}
+            className="bg-orange-100 text-orange-500 px-3 py-1 rounded-full text-lg font-bold hover:bg-orange-200"
+          >+</button>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
-          {/* Description */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Description</h3>
-            <p className="text-gray-600 leading-relaxed">
-              {food.description}
-            </p>
-          </div>
-
-          {/* Additional Info */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Details</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="flex items-center">
-                <span className="text-gray-500 mr-2">Category:</span>
-                <span className="font-medium text-gray-800">{food.category}</span>
-              </div>
-              <div className="flex items-center">
-                <span className="text-gray-500 mr-2">Price:</span>
-                <span className="font-medium text-orange-600">${food.price}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Options Section - Placeholder for user to add */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Customize Your Order</h3>
-            <div className="bg-gray-50 rounded-lg p-4 border-2 border-dashed border-gray-300">
-              <p className="text-gray-500 text-center">
-                Options and customization will be added here
-              </p>
-            </div>
-          </div>
-
-          {/* Add to Cart Section */}
-          <div className="border-t border-gray-200 pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <span className="text-lg font-semibold text-gray-800">Quantity:</span>
-                <div className="flex items-center gap-3 bg-gray-100 rounded-full px-3 py-1">
-                  <button
-                    onClick={() => removeFromCart(food.id)}
-                    className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-gray-50 transition-colors"
-                    disabled={count === 0}
-                  >
-                    <img
-                      src={assets.remove_icon_red}
-                      alt="Remove"
-                      className="w-4 h-4"
-                    />
-                  </button>
-                  <span className="text-lg font-semibold text-gray-800 min-w-[2rem] text-center">
-                    {count}
-                  </span>
-                  <button
-                    onClick={() => addToCart(food.id)}
-                    className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-gray-50 transition-colors"
-                  >
-                    <img
-                      src={assets.add_icon_green}
-                      alt="Add"
-                      className="w-4 h-4"
-                    />
-                  </button>
-                </div>
-              </div>
-              
-              <div className="text-right">
-                <p className="text-sm text-gray-500">Total Price</p>
-                <p className="text-2xl font-bold text-orange-600">
-                  ${(food.price * count).toFixed(2)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 mt-6">
-            <button
-              onClick={() => {
-                addToCart(food.id);
-                onClose();
-              }}
-              className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105"
-            >
-              Add to Cart
-            </button>
-            <button
-              onClick={onClose}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-            >
-              Continue Shopping
-            </button>
-          </div>
-        </div>
+        {/* Add to Cart */}
+        <button
+          onClick={handleAddToCart}
+          className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl w-full font-bold text-lg shadow transition-all duration-200 mt-2"
+        >
+          Add to Cart - ${getTotalPrice()}
+        </button>
       </div>
     </div>
   );
 };
 
-export default FoodDetailPopup; 
+export default FoodDetailPopup;

@@ -48,7 +48,7 @@ const Header = () => {
           hover:opacity-90
         "
         style={{
-          backgroundImage: `url(${assets.header_img})`,
+          backgroundImage: `url(https://www.urlaubstracker.at/wp-content/uploads/2019/09/indien-tikka-masala.jpg)`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           filter: "brightness(1.1)", // Makes image brighter

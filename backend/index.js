@@ -1,19 +1,27 @@
+import dotenv from "dotenv";
+dotenv.config();
+console.log("Loaded JWT_SECRET:", process.env.JWT_SECRET);
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import { connectDB } from "./config/db.js";
 import foodRouter from "./routes/foodRoute.js";
 import userRouter from "./routes/userRoute.js";
+import orderRouter from "./routes/orderRoute.js";
+import adminRouter from "./routes/adminRoute.js";
 import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
+import cartRouter from "./routes/cartRoute.js";
+import { fileURLToPath } from 'url';
+
+
+
 
 // Setup __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Load .env
-dotenv.config();
+
 
 // App config
 const app = express();
@@ -39,6 +47,9 @@ app.use("/images", express.static(uploadDir));
 // ✅ API Routes
 app.use("/api/food", foodRouter);
 app.use("/api/user", userRouter);
+app.use("/api/cart", cartRouter);
+app.use("/api/order", orderRouter);
+app.use("/api/admin", adminRouter);
 
 // ✅ Root route
 app.get("/", (req, res) => {

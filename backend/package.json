@@ -4,12 +4,22 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "server": "nodemon index.js"
+    "server": "nodemon index.js",
+    "setup": "node setup-env.js",
+    "setup-admin": "node setup-admin.js",
+    "test-admin": "node test-admin.js",
+    "check-admin": "node check-admin.js",
+    "test-token": "node test-token.js",
+    "test-cart": "node test-cart.js",
+    "test-order": "node test-order.js",
+    "clear-tokens": "node clear-expired-tokens.js",
+    "cleanup-orders": "node cleanup-orders.js"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "axios": "^1.6.8",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",

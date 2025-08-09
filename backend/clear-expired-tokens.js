@@ -1,0 +1,15 @@
+console.log('🧹 Token Cleanup Instructions');
+console.log('');
+console.log('To clear expired tokens from your browser:');
+console.log('');
+console.log('1. Open your browser\'s Developer Tools (F12)');
+console.log('2. Go to the Console tab');
+console.log('3. Run this command:');
+console.log('   localStorage.removeItem("token");');
+console.log('');
+console.log('4. Or run this to check current token:');
+console.log('   console.log("Current token:", localStorage.getItem("token"));');
+console.log('');
+console.log('5. Then refresh your page and login again');
+console.log('');
+console.log('✅ This will clear any expired tokens and allow you to login fresh'); 

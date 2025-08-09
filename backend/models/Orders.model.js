@@ -8,6 +8,12 @@ const orderSchema = new mongoose.Schema(
             required: true,
         },
 
+        orderToken: {
+            type: String,
+            required: true,
+            unique: true,
+        },
+
         items: [
             {
                 food: {
@@ -35,12 +41,6 @@ const orderSchema = new mongoose.Schema(
         status: {
             type: String,
             enum: ["pending", "preparing", "ready", "delivered", "cancelled"],
-            default: "pending",
-        },
-
-        paymentStatus: {
-            type: String,
-            enum: ["pending", "paid", "failed"],
             default: "pending",
         },
     },

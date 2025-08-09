@@ -1,5 +1,4 @@
 import React, { useState, useContext } from 'react';
-import { assets } from '../new assests/frontend_assets/assets';
 import axios from 'axios';
 import { StoreContext } from '../Context/StoreContext';
 
@@ -58,11 +57,11 @@ const LoginPop = ({ ShowLogin, setShowLogin, setIsLoggedIn }) => {
           setErrors({});
           alert(isLogin ? 'Login successful!' : 'Registration successful!');
         } else {
-          alert((isLogin ? 'Login' : 'Registration') + ' failed: ' + response.data.error);
+          alert((isLogin ? 'Login' : 'Registration') + ' failed: ' + (response.data.error || response.data.message || 'Unknown error'));
         }
       } catch (error) {
         console.error("❌ Error during request:", error.response?.data || error.message);
-        alert('An error occurred: ' + (error.response?.data?.error || error.message));
+        alert('An error occurred: ' + (error.response?.data?.error || error.response?.data?.message || error.message));
       }
     }
   };
@@ -95,8 +94,8 @@ const LoginPop = ({ ShowLogin, setShowLogin, setIsLoggedIn }) => {
 
       if (!formData.phone) {
         newErrors.phone = 'Phone number is required';
-      } else if (!/^\d{10}$/.test(formData.phone)) {
-        newErrors.phone = 'Enter a valid 10-digit phone number';
+      } else if (!/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(formData.phone)) {
+        newErrors.phone = 'Enter a valid American phone number (e.g., (555) 123-4567)';
       }
     }
 
@@ -119,10 +118,16 @@ const LoginPop = ({ ShowLogin, setShowLogin, setIsLoggedIn }) => {
 
   if (!ShowLogin) return null;
 
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      closeModal();
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4 pt-20"
-      onClick={closeModal}
+      onClick={handleOverlayClick}
     >
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto"
@@ -175,7 +180,7 @@ const LoginPop = ({ ShowLogin, setShowLogin, setIsLoggedIn }) => {
                     className={`w-full px-3 py-2 border rounded-lg ${
                       errors.phone ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="10-digit phone number"
+                    placeholder="(555) 123-4567"
                   />
                   {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                 </div>

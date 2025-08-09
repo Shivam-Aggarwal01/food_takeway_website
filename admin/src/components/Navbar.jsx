@@ -1,6 +1,7 @@
 import React from 'react'
 import { assets } from '../assets/admin_assets/assets.js';
 
+
 const Navbar = ({ toggleSidebar }) => {
   return (
     // Responsive Navbar container with white background, orange border, and shadow
